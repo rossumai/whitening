@@ -8,11 +8,18 @@ Python API:
 
 ```
 from PIL import Image
+
 from whitening import whiten
 
+# possible to use numpy array as input/output
 image = np.asarray(Image.open('image.jpg'), dtype='uint8')
-whitened, background = whiten(image, kernel_size=50)
+whitened, background = whiten(image, kernel_size=50, downsample=4)
 Image.fromarray(whitened).save('whitened.jpg', 'jpeg')
+
+# or directly a PIL image
+image = Image.open('image.jpg')
+whitened, background = whiten(image, kernel_size=50, downsample=4)
+whitened.save('whitened.jpg', 'jpeg')
 ```
 
 CLI:
@@ -39,7 +46,8 @@ Select kernel size that's enough for not making artifacts while small enough
 to keep computation fast. A good starting point is 50 pixels.
 
 A 9.5 Mpx image can be processed on a MacBook in 15 s, with grayscale and
-downsampling 4x the run time can be reduced to 1 s!
+downsampling 4x the run time can be reduced to 1 s! Quite good results can be
+obtained even with kernel size 10 and downsampling 16x.
 """
 
 from __future__ import print_function, division
@@ -48,9 +56,9 @@ import time
 
 import numpy as np
 from PIL import Image
-from skimage.filters import median
-from skimage.morphology import square
-from skimage.transform import resize
+import skimage.filters
+import skimage.morphology
+import skimage.transform
 
 def whiten(image, kernel_size, downsample=1):
     """
@@ -62,31 +70,46 @@ def whiten(image, kernel_size, downsample=1):
     the original image by the background, leaving the foreground.
 
     Input:
-    `image` - input image
+    `image` - input image (np.ndarray or PIL.Image.Image)
     `kernel_size` - width of the median filter kernel
+    `downsample` - downsampling factor to speedup the median calculation,
+    can be useful since background is usually low-frequency image
 
     All images are represented as a numpy array of shape (height, width,
-    channels) and dtype uint8.
+    channels) and dtype uint8 or PIL.Image.Image.
 
     Output: `whitened` (foreground), `background`
     """
+    input_is_image = issubclass(type(image), Image.Image)
+    if input_is_image:
+        image = np.asarray(image, dtype='uint8')
+
     channels = image.shape[-1]
     # apply 2D median filter on each channel separately
     input_image = image
     shape = np.array(image.shape)
+
     if downsample != 1:
         downsampled_shape = (shape[:2] // downsample) + (channels,)
-        input_image = (resize(image, downsampled_shape) * 255).astype(np.uint8)
-        print('input_image.shape', input_image.shape)
-    kernel = square(kernel_size)
+        resized = skimage.transform.resize(image, downsampled_shape)
+        input_image = (resized * 255).astype(np.uint8)
+
+    kernel = skimage.morphology.square(kernel_size)
     background = np.dstack([
-        median(input_image[:, :, i], selem=kernel)
+        skimage.filters.median(input_image[:, :, i], selem=kernel)
         for i in range(channels)])
+
     if downsample != 1:
-        background = (resize(background, shape) * 255).astype(np.uint8)
+        background = (skimage.transform.resize(background, shape) * 255).astype(np.uint8)
+
     whitened = (image.astype(np.float32) / background.astype(np.float32))
     whitened = np.minimum(whitened, 1)
     whitened = (whitened * 255).astype(np.uint8)
+
+    if input_is_image:
+        whitened = Image.fromarray(whitened)
+        background = Image.fromarray(background)
+
     return whitened, background
 
 def to_grayscale(image):
