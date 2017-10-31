@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image
-from scipy.signal import medfilt2d
+from skimage.filters import median
+from skimage.morphology import square
 
 def read_image_to_numpy(path):
     return np.asarray(Image.open(path), dtype="uint8")
@@ -24,7 +25,8 @@ def whiten(image, kernel_size):
     """
     channels = image.shape[-1]
     # apply 2D median filter on each channel separately
-    background = np.dstack([medfilt2d(image[:, :, i], kernel_size)
+    kernel = square(kernel_size)
+    background = np.dstack([median(image[:, :, i], selem=kernel)
         for i in range(channels)])
     whitened = (image.astype(np.float32) / background.astype(np.float32))
     whitened = np.minimum(whitened, 1)
@@ -35,6 +37,6 @@ if __name__ == '__main__':
     import os
     data_dir = 'data/source_images/'
     image = read_image_to_numpy(os.path.join(data_dir, 'IMG_3262_denoised.jpg'))
-    whitened, background = whiten(image, kernel_size=41)
+    whitened, background = whiten(image, kernel_size=50)
     Image.fromarray(whitened).save('IMG_3262_whitened.jpg', 'jpeg')
     Image.fromarray(background).save('IMG_3262_background.jpg', 'jpeg')
