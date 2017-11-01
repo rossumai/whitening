@@ -13,12 +13,12 @@ from whitening import whiten
 
 # possible to use numpy array as input/output
 image = np.asarray(Image.open('image.jpg'), dtype='uint8')
-foreground, background = whiten(image, kernel_size=50, downsample=4)
+foreground, background = whiten(image, kernel_size=20, downsample=4)
 Image.fromarray(foreground).save('foreground.jpg', 'jpeg')
 
 # or directly a PIL image
 image = Image.open('image.jpg')
-foreground, background = whiten(image, kernel_size=50, downsample=4)
+foreground, background = whiten(image, kernel_size=20, downsample=4)
 foreground.save('foreground.jpg', 'jpeg')
 ```
 
@@ -61,7 +61,7 @@ import skimage.filters
 import skimage.morphology
 import skimage.transform
 
-def whiten(image, kernel_size, downsample=1):
+def whiten(image, kernel_size=10, downsample=1):
     """
     Tries to separate text/line foreground and background by 2D median filter
     whitening.
