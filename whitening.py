@@ -56,6 +56,7 @@ import time
 
 import numpy as np
 from PIL import Image
+from skimage.color import rgb2gray
 import skimage.filters
 import skimage.morphology
 import skimage.transform
@@ -124,7 +125,7 @@ def whiten(image, kernel_size, downsample=1):
     return foreground, background
 
 def to_grayscale(image):
-    return image.mean(axis=-1).reshape(image.shape[:2] + (1,)).astype(image.dtype)
+    return (rgb2gray(image) * 255).astype(np.uint8)
 
 def to_rgb(image):
     if image.shape[-1] == 1:
