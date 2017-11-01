@@ -93,30 +93,45 @@ def whiten(image, kernel_size, downsample=1):
         image = image.reshape(image.shape + (1,))
 
     channels = image.shape[-1]
-    # apply 2D median filter on each channel separately
+
     input_image = image
     shape = np.array(image.shape)
 
     if downsample != 1:
         downsampled_shape = (shape[:2] // downsample) + (channels,)
-        resized = skimage.transform.resize(image, downsampled_shape)
-        input_image = (resized * 255).astype(np.uint8)
+        # converts to np.float32 with scale [0., 1.]
+        resized = skimage.transform.resize(image, downsampled_shape, mode='edge')
+        input_image = to_byte_format(resized)
 
+    # apply 2D median filter on each channel separately
+    # uint8 input/output
     kernel = skimage.morphology.square(kernel_size)
     background = np.dstack([
         skimage.filters.median(input_image[:, :, i], selem=kernel)
         for i in range(channels)])
 
     if downsample != 1:
-        background = (skimage.transform.resize(background, shape) * 255).astype(np.uint8)
+        # upsample the computed background to original size
+        # resize converts to np.float32 with scale [0., 1.]
+        background_float = skimage.transform.resize(background, shape, mode='edge')
+        background = to_byte_format(background_float)
+    else:
+        background_float = from_byte_format(background)
 
-    foreground = (image.astype(np.float32) / background.astype(np.float32))
+    # We assume the original images is a product of foreground and background,
+    # thus we can recover the forground by dividing the image by the background:
+    # I = F * B => F = I / B
+    # For division we use float32 format instead of uint8.
+    # Inputs are scaled [0., 255.], output is scaled [0., 1.]
+    image_float = from_byte_format(image)
+    foreground = (image_float / background_float)
+    # Values over 1.0 has to be clipped to prevent uint8 overflow.
     foreground = np.minimum(foreground, 1)
-    foreground = (foreground * 255).astype(np.uint8)
+    foreground = to_byte_format(foreground)
 
     if is_grayscale:
-        foreground = foreground[:,:,0]
-        background = background[:,:,0]
+        foreground = foreground[:, :, 0]
+        background = background[:, :, 0]
 
     if input_is_image:
         foreground = Image.fromarray(foreground)
@@ -125,13 +140,19 @@ def whiten(image, kernel_size, downsample=1):
     return foreground, background
 
 def to_grayscale(image):
-    return (rgb2gray(image) * 255).astype(np.uint8)
+    return to_byte_format(rgb2gray(image))
 
 def to_rgb(image):
     if image.shape[-1] == 1:
         return np.broadcast_to(image, image.shape[:2] + (3,))
     else:
         return image
+
+def to_byte_format(array):
+    return (array * 255).astype(np.uint8)
+
+def from_byte_format(array):
+    return array.astype(np.float32) / 255
 
 def timeit(method):
     """
