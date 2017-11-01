@@ -13,33 +13,33 @@ from whitening import whiten
 
 # possible to use numpy array as input/output
 image = np.asarray(Image.open('image.jpg'), dtype='uint8')
-whitened, background = whiten(image, kernel_size=50, downsample=4)
-Image.fromarray(whitened).save('whitened.jpg', 'jpeg')
+foreground, background = whiten(image, kernel_size=50, downsample=4)
+Image.fromarray(foreground).save('foreground.jpg', 'jpeg')
 
 # or directly a PIL image
 image = Image.open('image.jpg')
-whitened, background = whiten(image, kernel_size=50, downsample=4)
-whitened.save('whitened.jpg', 'jpeg')
+foreground, background = whiten(image, kernel_size=50, downsample=4)
+foreground.save('foreground.jpg', 'jpeg')
 ```
 
 CLI:
 ```
 $ python whitening.py --help
 
-# whiten an image and save the whitened output
-$ python whitening.py input.jpg whitened.jpg
+# whiten an image and save the foreground output
+$ python whitening.py input.jpg foreground.jpg
 
 # specify the kernel size
-$ python whitening.py input.jpg whitened.jpg -k 100
+$ python whitening.py input.jpg foreground.jpg -k 100
 
 # work in grayscale instead of RGB (3x faster)
-$ python whitening.py input.jpg whitened.jpg -g
+$ python whitening.py input.jpg foreground.jpg -g
 
 # downsample the image 4x (faster, but a bit less precise)
-$ python whitening.py input.jpg whitened.jpg -d 4
+$ python whitening.py input.jpg foreground.jpg -d 4
 
 # save also the background
-$ python whitening.py input.jpg whitened.jpg -b background.jpg
+$ python whitening.py input.jpg foreground.jpg -b background.jpg
 ```
 
 Select kernel size that's enough for not making artifacts while small enough
@@ -78,7 +78,7 @@ def whiten(image, kernel_size, downsample=1):
     All images are represented as a numpy array of shape (height, width,
     channels) and dtype uint8 or PIL.Image.Image.
 
-    Output: `whitened` (foreground), `background`
+    Output: `foreground`, `background`
     """
     input_is_image = issubclass(type(image), Image.Image)
     if input_is_image:
@@ -102,15 +102,15 @@ def whiten(image, kernel_size, downsample=1):
     if downsample != 1:
         background = (skimage.transform.resize(background, shape) * 255).astype(np.uint8)
 
-    whitened = (image.astype(np.float32) / background.astype(np.float32))
-    whitened = np.minimum(whitened, 1)
-    whitened = (whitened * 255).astype(np.uint8)
+    foreground = (image.astype(np.float32) / background.astype(np.float32))
+    foreground = np.minimum(foreground, 1)
+    foreground = (foreground * 255).astype(np.uint8)
 
     if input_is_image:
-        whitened = Image.fromarray(whitened)
+        foreground = Image.fromarray(foreground)
         background = Image.fromarray(background)
 
-    return whitened, background
+    return foreground, background
 
 def to_grayscale(image):
     return image.mean(axis=-1).reshape(image.shape[:2] + (1,)).astype(image.dtype)
@@ -139,7 +139,7 @@ def timed_whiten(*args, **kwargs):
 def parse_args():
     parser = argparse.ArgumentParser(description='Whitens an image.')
     parser.add_argument('image', metavar='INPUT', help='input image path')
-    parser.add_argument('whitened', metavar='WHITENED', help='whitened output image path')
+    parser.add_argument('foreground', metavar='FOREGROUND', help='foreground output image path')
     parser.add_argument('-b', '--background', help='background output image path')
     parser.add_argument('-k', '--kernel-size', type=int, default=50,
         help='size of the 2D median filter kernel')
@@ -155,11 +155,11 @@ if __name__ == '__main__':
     image = np.asarray(Image.open(args.image), dtype='uint8')
     if args.grayscale:
         image = to_grayscale(image)
-    whitened, background = timed_whiten(image, kernel_size=args.kernel_size,
+    foreground, background = timed_whiten(image, kernel_size=args.kernel_size,
         downsample=args.downsample)
     if args.grayscale:
-        whitened = to_rgb(whitened)
+        foreground = to_rgb(foreground)
         background = to_rgb(background)
-    Image.fromarray(whitened).save(args.whitened, 'jpeg')
+    Image.fromarray(foreground).save(args.foreground, 'jpeg')
     if args.background is not None:
         Image.fromarray(background).save(args.background, 'jpeg')
