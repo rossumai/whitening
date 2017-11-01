@@ -104,11 +104,21 @@ def whiten(image, kernel_size, downsample=1):
         input_image = to_byte_format(resized)
 
     # apply 2D median filter on each channel separately
-    # uint8 input/output
+
     kernel = skimage.morphology.square(kernel_size)
-    background = np.dstack([
-        skimage.filters.median(input_image[:, :, i], selem=kernel)
-        for i in range(channels)])
+    def filter_channel(channel_index):
+        """
+        Filter an RGB image channel via median filter, ignore alpha channel.
+        input/output data format: uint8
+        """
+        image_channel = input_image[:, :, channel_index]
+        if channel_index < 3:
+            return skimage.filters.median(image_channel, selem=kernel)
+        else:
+            # do not filter alpha channel
+            return image_channel
+
+    background = np.dstack([filter_channel(i) for i in range(channels)])
 
     if downsample != 1:
         # upsample the computed background to original size
