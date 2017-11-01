@@ -57,7 +57,7 @@ import argparse
 import time
 
 import numpy as np
-from PIL import Image
+import PIL.Image
 from skimage.color import rgb2gray
 import skimage.filters
 import skimage.morphology
