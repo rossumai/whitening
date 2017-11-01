@@ -129,6 +129,8 @@ def to_grayscale(image):
 def to_rgb(image):
     if image.shape[-1] == 1:
         return np.broadcast_to(image, image.shape[:2] + (3,))
+    else:
+        return image
 
 def timeit(method):
     """
