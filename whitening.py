@@ -7,17 +7,17 @@ Example usage:
 Python API:
 
 ```
-from PIL import Image
+import PIL.Image
 
 from whitening import whiten
 
 # possible to use numpy array as input/output
-image = np.asarray(Image.open('image.jpg'), dtype='uint8')
+image = np.asarray(PIL.Image.open('image.jpg'), dtype='uint8')
 foreground, background = whiten(image, kernel_size=20, downsample=4)
-Image.fromarray(foreground).save('foreground.jpg', 'jpeg')
+PIL.Image.fromarray(foreground).save('foreground.jpg', 'jpeg')
 
 # or directly a PIL image
-image = Image.open('image.jpg')
+image = PIL.Image.open('image.jpg')
 foreground, background = whiten(image, kernel_size=20, downsample=4)
 foreground.save('foreground.jpg', 'jpeg')
 ```
@@ -48,6 +48,8 @@ to keep computation fast. A good starting point is 50 pixels.
 A 9.5 Mpx image can be processed on a MacBook in 15 s, with grayscale and
 downsampling 4x the run time can be reduced to 1 s! Quite good results can be
 obtained even with kernel size 10 and downsampling 16x.
+
+More info: http://bohumirzamecnik.cz/blog/2015/image-whitening/
 """
 
 from __future__ import print_function, division
@@ -81,7 +83,7 @@ def whiten(image, kernel_size=10, downsample=1):
 
     Output: `foreground`, `background`
     """
-    input_is_image = issubclass(type(image), Image.Image)
+    input_is_image = issubclass(type(image), PIL.Image.Image)
     if input_is_image:
         # RGB/RGBA images can be converted without copying
         # L (grayscale) images must be copied to avoid
@@ -144,8 +146,8 @@ def whiten(image, kernel_size=10, downsample=1):
         background = background[:, :, 0]
 
     if input_is_image:
-        foreground = Image.fromarray(foreground)
-        background = Image.fromarray(background)
+        foreground = PIL.Image.fromarray(foreground)
+        background = PIL.Image.fromarray(background)
 
     return foreground, background
 
@@ -197,7 +199,7 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    image = np.asarray(Image.open(args.image), dtype='uint8')
+    image = np.asarray(PIL.Image.open(args.image), dtype='uint8')
     if args.grayscale:
         image = to_grayscale(image)
     foreground, background = timed_whiten(image, kernel_size=args.kernel_size,
@@ -205,6 +207,6 @@ if __name__ == '__main__':
     if args.grayscale:
         foreground = to_rgb(foreground)
         background = to_rgb(background)
-    Image.fromarray(foreground).save(args.foreground, 'jpeg')
+    PIL.Image.fromarray(foreground).save(args.foreground, 'jpeg')
     if args.background is not None:
-        Image.fromarray(background).save(args.background, 'jpeg')
+        PIL.Image.fromarray(background).save(args.background, 'jpeg')
