@@ -82,7 +82,14 @@ def whiten(image, kernel_size, downsample=1):
     """
     input_is_image = issubclass(type(image), Image.Image)
     if input_is_image:
-        image = np.asarray(image, dtype='uint8')
+        # RGB/RGBA images can be converted without copying
+        # L (grayscale) images must be copied to avoid
+        # https://github.com/cython/cython/issues/1605
+        image = np.array(image, copy=image.mode == 'L')
+
+    is_grayscale = len(image.shape) < 3
+    if is_grayscale:
+        image = image.reshape(image.shape + (1,))
 
     channels = image.shape[-1]
     # apply 2D median filter on each channel separately
@@ -105,6 +112,10 @@ def whiten(image, kernel_size, downsample=1):
     foreground = (image.astype(np.float32) / background.astype(np.float32))
     foreground = np.minimum(foreground, 1)
     foreground = (foreground * 255).astype(np.uint8)
+
+    if is_grayscale:
+        foreground = foreground[:,:,0]
+        background = background[:,:,0]
 
     if input_is_image:
         foreground = Image.fromarray(foreground)
