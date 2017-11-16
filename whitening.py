@@ -136,6 +136,8 @@ def whiten(image, kernel_size=10, downsample=1):
     # For division we use float32 format instead of uint8.
     # Inputs are scaled [0., 255.], output is scaled [0., 1.]
     image_float = from_byte_format(image)
+    # prevent division by zero
+    background_float = np.maximum(0.001, background_float)
     foreground = (image_float / background_float)
     # Values over 1.0 has to be clipped to prevent uint8 overflow.
     foreground = np.minimum(foreground, 1)
