@@ -17,9 +17,9 @@ def main():
     if args.grayscale:
         foreground = to_rgb(foreground)
         background = to_rgb(background)
-    PIL.Image.fromarray(foreground).save(args.foreground, 'jpeg')
+    PIL.Image.fromarray(foreground).save(args.foreground)
     if args.background is not None:
-        PIL.Image.fromarray(background).save(args.background, 'jpeg')
+        PIL.Image.fromarray(background).save(args.background)
 
 
 def timeit(method):
