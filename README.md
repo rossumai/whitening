@@ -13,9 +13,13 @@ pip install whitening
 
 ## Example usage
 
-Python API:
+### Python API
+
+It works with images represented as `PIL.Image` or as a numpy array. Images can
+be either RGB or grayscale.
 
 ```python
+import numpy as np
 import PIL.Image
 
 from whitening import whiten
@@ -31,25 +35,28 @@ foreground, background = whiten(image, kernel_size=20, downsample=4)
 foreground.save('foreground.jpg', 'jpeg')
 ```
 
-CLI:
+### CLI
+
+It install an entry point called `whiten`.
 
 ```bash
-$ python whitening.py --help
+# help
+$ whiten -h
 
 # whiten an image and save the foreground output
-$ python whitening.py input.jpg foreground.jpg
+$ whiten input.jpg foreground.jpg
 
 # specify the kernel size
-$ python whitening.py input.jpg foreground.jpg -k 100
+$ whiten input.jpg foreground.jpg -k 100
 
 # work in grayscale instead of RGB (3x faster)
-$ python whitening.py input.jpg foreground.jpg -g
+$ whiten input.jpg foreground.jpg -g
 
 # downsample the image 4x (faster, but a bit less precise)
-$ python whitening.py input.jpg foreground.jpg -d 4
+$ whiten input.jpg foreground.jpg -d 4
 
 # save also the background
-$ python whitening.py input.jpg foreground.jpg -b background.jpg
+$ whiten input.jpg foreground.jpg -b background.jpg
 ```
 
 We assume the original images is a product of foreground and background,
@@ -67,8 +74,12 @@ obtained even with kernel size 10 and downsampling 16x.
 
 More info: http://bohumirzamecnik.cz/blog/2015/image-whitening/
 
+## Development
+
+See the `Makefile` for various development tasks.
+
 ## License
 
-Author: Bohumir Zamecnik
+Author: Bohumír Zámečník <bohumir.zamecnik@gmail.com>
 
 Supported by [Rossum](https://rossum.ai), creating a world without manual data entry.
