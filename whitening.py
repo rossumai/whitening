@@ -63,6 +63,7 @@ import skimage.filters
 import skimage.morphology
 import skimage.transform
 
+
 def whiten(image, kernel_size=10, downsample=1):
     """
     Tries to separate text/line foreground and background by 2D median filter
@@ -108,6 +109,7 @@ def whiten(image, kernel_size=10, downsample=1):
     # apply 2D median filter on each channel separately
 
     kernel = skimage.morphology.square(kernel_size)
+
     def filter_channel(channel_index):
         """
         Filter an RGB image channel via median filter, ignore alpha channel.
@@ -131,7 +133,7 @@ def whiten(image, kernel_size=10, downsample=1):
         background_float = from_byte_format(background)
 
     # We assume the original images is a product of foreground and background,
-    # thus we can recover the forground by dividing the image by the background:
+    # thus we can recover the foreground by dividing the image by the background:
     # I = F * B => F = I / B
     # For division we use float32 format instead of uint8.
     # Inputs are scaled [0., 255.], output is scaled [0., 1.]
@@ -153,8 +155,10 @@ def whiten(image, kernel_size=10, downsample=1):
 
     return foreground, background
 
+
 def to_grayscale(image):
     return to_byte_format(rgb2gray(image))
+
 
 def to_rgb(image):
     if image.shape[-1] == 1:
@@ -162,16 +166,20 @@ def to_rgb(image):
     else:
         return image
 
+
 def to_byte_format(array):
     return (array * 255).astype(np.uint8)
 
+
 def from_byte_format(array):
     return array.astype(np.float32) / 255
+
 
 def timeit(method):
     """
     Decorator to measure run time of a method.
     """
+
     def timed(*args, **kw):
         start = time.time()
         result = method(*args, **kw)
@@ -181,9 +189,11 @@ def timeit(method):
 
     return timed
 
+
 @timeit
 def timed_whiten(*args, **kwargs):
     return whiten(*args, **kwargs)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Whitens an image.')
@@ -191,13 +201,14 @@ def parse_args():
     parser.add_argument('foreground', metavar='FOREGROUND', help='foreground output image path')
     parser.add_argument('-b', '--background', help='background output image path')
     parser.add_argument('-k', '--kernel-size', type=int, default=50,
-        help='size of the 2D median filter kernel')
+                        help='size of the 2D median filter kernel')
     parser.add_argument('-d', '--downsample', type=int, default=1,
-        help='downsampling factor')
+                        help='downsampling factor')
     parser.add_argument('-g', '--grayscale', action='store_true', default=False,
-        help='convert to grayscale (faster)')
+                        help='convert to grayscale (faster)')
 
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     args = parse_args()
@@ -205,7 +216,7 @@ if __name__ == '__main__':
     if args.grayscale:
         image = to_grayscale(image)
     foreground, background = timed_whiten(image, kernel_size=args.kernel_size,
-        downsample=args.downsample)
+                                          downsample=args.downsample)
     if args.grayscale:
         foreground = to_rgb(foreground)
         background = to_rgb(background)
