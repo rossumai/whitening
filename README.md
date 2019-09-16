@@ -3,6 +3,10 @@
 This package tries to separate text/line foreground and background by 2D median
 filter.
 
+<img src="data/IMG_3262.jpg" alt="original" width="250">
+<img src="data/IMG_3262_fg.jpg" alt="foreground" width="250">
+<img src="data/IMG_3262_bg.jpg" alt="background" width="250">
+
 ## Installation
 
 Install from PyPI. Works on Python 3.

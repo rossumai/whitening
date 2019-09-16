@@ -11,7 +11,7 @@ import PIL.Image
 
 from whitening import whiten
 
-image = PIL.Image.open('data/source_images/IMG_3262_denoised.jpg')
+image = PIL.Image.open('data/IMG_3262.jpg')
 assert image.mode == 'RGB'
 assert image.size == (800, 800)
 
