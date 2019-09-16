@@ -209,7 +209,7 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+def main():
     args = parse_args()
     image = np.asarray(PIL.Image.open(args.image), dtype='uint8')
     if args.grayscale:
@@ -222,3 +222,7 @@ if __name__ == '__main__':
     PIL.Image.fromarray(foreground).save(args.foreground, 'jpeg')
     if args.background is not None:
         PIL.Image.fromarray(background).save(args.background, 'jpeg')
+
+
+if __name__ == '__main__':
+    main()
