@@ -52,7 +52,6 @@ obtained even with kernel size 10 and downsampling 16x.
 More info: http://bohumirzamecnik.cz/blog/2015/image-whitening/
 """
 
-from __future__ import print_function, division
 import argparse
 import time
 
