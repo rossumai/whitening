@@ -47,7 +47,7 @@ setup(name='whitening',
       ],
       entry_points={
           'console_scripts': [
-              'whiten = whitening:main'
+              'whiten = whitening.__main__:main'
           ]
       },
       )
