@@ -91,7 +91,7 @@ def whiten(image, kernel_size=10, downsample=1):
         """
         image_channel = input_image[:, :, channel_index]
         if channel_index < 3:
-            return skimage.filters.median(image_channel, selem=kernel)
+            return skimage.filters.median(image_channel, footprint=kernel)
         else:
             # do not filter alpha channel
             return image_channel
