@@ -8,7 +8,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='whitening',
-      version='0.1',
+      version='0.2',
       description='Document whitening (foreground separation)',
       url='https://github.com/rossumai/whitening',
       author='Bohumir Zamecnik',
